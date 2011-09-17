@@ -223,6 +223,7 @@ public class VoipClient {
 
 		}//end playAudio
 	  
+	  /*
 	  class PlayThread extends Thread{
 		  byte tempBuffer[] = new byte[10000];
 
@@ -252,6 +253,8 @@ public class VoipClient {
 		    }//end catch
 		  }//end run
 		}//end inner class PlayThread
+		*/
+	  
 	  /*
 	  private void send_msg()	{
 		  String message = "Hello";
