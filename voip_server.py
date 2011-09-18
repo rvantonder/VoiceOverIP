@@ -1,8 +1,8 @@
 import socket
 import threading
 import sys
-from mxitgui import ClientForm
 from PyQt4 import QtCore, QtGui
+from serverwindow import Ui_Form
 
 global connections
 
@@ -57,28 +57,15 @@ class Client(threading.Thread):
     data = self.client.recv(self.size) #the first thing it receives
     print 'data',data
 
-class ServerGUI:
-  def __init__(self, master):
-    frame = Frame(master)
-    frame.bind("",self.updateUserList)
-    frame.bind("",self.updateText)
-    frame.pack()
+class ServerGUI(QtGui.QWidget):
+  def __init__(self):
 
+    super(ServerGUI, self).__init__()
+
+    self.ui = Ui_Form()
+    self.ui.setupUi(self)
     
-    self.text = Text(frame)
-    self.text.pack(side=LEFT)
-
-    self.text.config(state=NORMAL)
-    self.text.insert(END, "some text")
-    self.text.config(state=DISABLED)  
-
-    self.userlist = Listbox(frame)
-    self.userlist.pack(side=LEFT, fill=Y)
-
-    self.userlist.insert(END, "entry")
     
-    self.voipServer = VOIPServer(3000)
-    self.voipServer.run()
 
 
   def updateUserList(self):
