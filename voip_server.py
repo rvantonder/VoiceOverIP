@@ -1,3 +1,4 @@
+import select
 import socket
 import threading
 import sys
@@ -6,8 +7,28 @@ from serverwindow import Ui_Form
 
 global connections
 
-class VOIPServer:
-  def __init__(self, port):
+class Client(QtCore.QThread):
+  def __init__(self,(client,address)):
+    QtCore.QThread.__init__(self,None) #parent = none
+    self.client = client #client, hostname?
+    print 'client',self.client
+    self.address = address
+    print 'address',self.address
+    self.size = 1024
+    self.running = 1
+
+  def run(self): #when the client thread is started
+    data = self.client.recv(self.size) #the first thing it receives
+    self.emit(QtCore.SIGNAL("updateUserlist"), data) #send data as test
+
+class ServerGUI(QtGui.QWidget):
+  def __init__(self,port):
+
+    super(ServerGUI, self).__init__()
+
+    self.ui = Ui_Form()
+    self.ui.setupUi(self)
+    
     self.host = ''
     self.port = port
     self.backlog = 5
@@ -23,6 +44,8 @@ class VOIPServer:
       print "Could not open port. Aborting."
       sys.exit(1)
 
+    self.c = None
+
   def run(self):
     input = [self.socket,sys.stdin]
     running = 1
@@ -34,7 +57,8 @@ class VOIPServer:
 
             if s == self.socket:
                 c = Client(self.socket.accept())
-                c.setDaemon(True)
+                self.connect(c, QtCore.SIGNAL("updateUserlist"), self.updateUserlist)
+                self.connect(c, QtCore.SIGNAL("updateText"), self.updateText)
                 c.start()
                 self.threads.append(c)
 
@@ -42,34 +66,12 @@ class VOIPServer:
                 junk = sys.stdin.readline()
                 running = 0
 
-
-class Client(threading.Thread):
-  def __init__(self,(client,address)):
-    threading.Thread.__init__(self)
-    self.client = client #client, hostname?
-    print 'client',self.client
-    self.address = address
-    print 'address',self.address
-    self.size = 1024
-    self.running = 1
-
-  def run(self): #when the client thread is started
-    data = self.client.recv(self.size) #the first thing it receives
-    print 'data',data
-
-class ServerGUI(QtGui.QWidget):
-  def __init__(self):
-
-    super(ServerGUI, self).__init__()
-
-    self.ui = Ui_Form()
-    self.ui.setupUi(self)
-    
-    
-
-
-  def updateUserList(self):
-    pass
+  def updateUserlist(self, l):
+    self.ui.listWidget.clear()
+    #for i in l:
+    item = QtGui.QListWidgetItem(str(l))
+      
+    self.ui.listWidget.addItem(item) 
 
   def updateText(self):
     pass
@@ -78,7 +80,10 @@ class ServerGUI(QtGui.QWidget):
 if __name__ == '__main__':
   try:
     app = QtGui.QApplication(sys.argv)
-    gui = ServerGUI() 
+    gui = ServerGUI(int(sys.argv[1]))
+    t = threading.Thread(target=gui.run)
+    t.setDaemon(True)
+    t.start()
     gui.show()
     sys.exit(app.exec_())
   except IndexError:
