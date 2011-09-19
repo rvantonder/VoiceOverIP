@@ -19,6 +19,7 @@ class Client(QtCore.QThread):
 
   def run(self): #when the client thread is started
     data = self.client.recv(self.size) #the first thing it receives
+    print 'received',data
     connections.append(data)
     print 'conns',connections
     self.emit(QtCore.SIGNAL("updateUserlist"), data) #send data as test
