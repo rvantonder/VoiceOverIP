@@ -19,6 +19,8 @@ class Client(QtCore.QThread):
 
   def run(self): #when the client thread is started
     data = self.client.recv(self.size) #the first thing it receives
+    connections.append(data)
+    print 'conns',connections
     self.emit(QtCore.SIGNAL("updateUserlist"), data) #send data as test
 
 class ServerGUI(QtGui.QWidget):
@@ -66,18 +68,23 @@ class ServerGUI(QtGui.QWidget):
                 junk = sys.stdin.readline()
                 running = 0
 
-  def updateUserlist(self, l):
+  def updateUserlist(self):
     self.ui.listWidget.clear()
-    #for i in l:
-    item = QtGui.QListWidgetItem(str(l))
-      
-    self.ui.listWidget.addItem(item) 
 
+    print 'updated',connections
+
+    for i in connections:
+      item = QtGui.QListWidgetItem(str(i))
+      self.ui.listWidget.addItem(item) 
+    
   def updateText(self):
     pass
 
 
 if __name__ == '__main__':
+
+  connections = []
+
   try:
     app = QtGui.QApplication(sys.argv)
     gui = ServerGUI(int(sys.argv[1]))
