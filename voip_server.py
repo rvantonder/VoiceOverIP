@@ -12,18 +12,33 @@ class Client(QtCore.QThread):
     QtCore.QThread.__init__(self,None) #parent = none
     self.client = client #client, hostname?
     print 'client',self.client
-    self.address = address
+    self.address = address[0]+str(address[1]) 
     print 'address',self.address
     self.size = 1024
     self.running = 1
 
   def run(self): #when the client thread is started
     data = self.client.recv(self.size) #the first thing it receives
-    print 'received',data
-    connections.append(data)
-    print 'conns',connections
+    #print 'received',data
+    connections.append(self.address)
     self.emit(QtCore.SIGNAL("updateUserlist"), data) #send data as test
+     #print 'conns',connections
 
+    while self.running:
+      try:
+        data = self.client.recv(self.size)
+      except socket.error:
+        print 'Socket error on receive'
+
+      if data:
+        pass
+        #print 'got data',data
+      else:
+        connections.remove(self.address)
+        self.emit(QtCore.SIGNAL("updateUserlist"), data) #send data as test
+        self.running = 0
+
+       
 class ServerGUI(QtGui.QWidget):
   def __init__(self,port):
 
