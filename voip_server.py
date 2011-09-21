@@ -11,33 +11,74 @@ class Client(QtCore.QThread):
   def __init__(self,(client,address)):
     QtCore.QThread.__init__(self,None) #parent = none
     self.client = client #client, hostname?
-    print 'client',self.client
-    self.address = address[0]+str(address[1]) 
-    print 'address',self.address
+    self.address = address[0] 
+    self.port = str(address[1])
     self.size = 1024
     self.running = 1
 
   def run(self): #when the client thread is started
-    data = self.client.recv(self.size) #the first thing it receives
-    #print 'received',data
     connections.append(self.address)
-    self.emit(QtCore.SIGNAL("updateUserlist"), data) #send data as test
-     #print 'conns',connections
+    self.emit(QtCore.SIGNAL("updateUserlist"), None)
+
+    try:
+      self.client.send("userlist")
+    except socket.error:
+      print 'failed sending userlist'
 
     while self.running:
       try:
         data = self.client.recv(self.size)
-      except socket.error:
+        #print 'data verbatim'
+        #print data
+      except socket.error as (number,msg):
+        print number,msg
         print 'Socket error on receive'
+        connections.remove(self.address) #potentially dangerous?
+        self.emit(QtCore.SIGNAL("updateUserlist"), None) #send data as test
+        self.emit(QtCore.SIGNAL("updateText"), (self.address + " has disconnected"))
+        return
 
       if data:
-        pass
-        #print 'got data',data
+        print "valid data",data+" from "+self.address
+        try:
+          cmd, host = self.parse(data)
+        except:
+          cmd = "None"
+          host = "None"
+        
+        if cmd == r'\call':
+          self.emit(QtCore.SIGNAL("updateText"), (self.address + " wants to call " + host))
+          if host in connections:
+            self.emit(QtCore.SIGNAL("updateText"), (host + " found"))
+            self.client.send("Connect to host " + self.address + " with port" + self.port)
+            #connect procedure
+          else:
+            self.emit(QtCore.SIGNAL("updateText"), (host + " not found"))
+            #?
+        else:
+          pass
+   
+          
       else:
         connections.remove(self.address)
-        self.emit(QtCore.SIGNAL("updateUserlist"), data) #send data as test
+        self.emit(QtCore.SIGNAL("updateUserlist"), None) #send data as test
+        self.emit(QtCore.SIGNAL("updateText"), (self.address + " has disconnected"))
         self.running = 0
 
+  def parse(self, data):
+    
+    cmd = None
+    host = None
+    try:
+      cmd, host = data.split(" ")
+      host.rstrip()
+    except:
+      print 'could not split' 
+
+    if not cmd == r'\call':
+      self.emit(QtCore.SIGNAL("updateText"), ("command " + cmd + " from " + self.address + " not valid"))
+    else:
+      return cmd, host
        
 class ServerGUI(QtGui.QWidget):
   def __init__(self,port):
@@ -87,14 +128,13 @@ class ServerGUI(QtGui.QWidget):
   def updateUserlist(self):
     self.ui.listWidget.clear()
 
-    print 'updated',connections
-
     for i in connections:
       item = QtGui.QListWidgetItem(str(i))
       self.ui.listWidget.addItem(item) 
     
-  def updateText(self):
-    pass
+  def updateText(self, msg):
+    self.ui.textEdit.append(msg)
+    self.ui.textEdit.ensureCursorVisible()
 
 
 if __name__ == '__main__':
