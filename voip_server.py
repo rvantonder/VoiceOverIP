@@ -21,6 +21,7 @@ class Client(QtCore.QThread):
     self.emit(QtCore.SIGNAL("updateUserlist"), None)
 
     try:
+      print 'sent userlist upon prompt'
       self.client.send("userlist")
     except socket.error:
       print 'failed sending userlist'
@@ -28,6 +29,7 @@ class Client(QtCore.QThread):
     while self.running:
       try:
         data = self.client.recv(self.size)
+        self.client.send("echo from server "+data)
         #print 'data verbatim'
         #print data
       except socket.error as (number,msg):
