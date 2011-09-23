@@ -22,14 +22,14 @@ class Client(QtCore.QThread):
 
     try:
       print 'sent userlist upon prompt'
-      self.client.send("userlist")
+      self.client.send("ul__ "+' '.join(connections)+"\n")
     except socket.error:
       print 'failed sending userlist'
 
     while self.running:
       try:
         data = self.client.recv(self.size)
-        self.client.send("echo from server "+data)
+        self.client.send("echo from server "+data+'\n')
         #print 'data verbatim'
         #print data
       except socket.error as (number,msg):
@@ -52,7 +52,7 @@ class Client(QtCore.QThread):
           self.emit(QtCore.SIGNAL("updateText"), (self.address + " wants to call " + host))
           if host in connections:
             self.emit(QtCore.SIGNAL("updateText"), (host + " found"))
-            self.client.send("Connect to host " + self.address + " with port" + self.port)
+            self.client.send("Connect to host " + self.address + " with port " + self.port + "\n")
             #connect procedure
           else:
             self.emit(QtCore.SIGNAL("updateText"), (host + " not found"))
@@ -141,7 +141,8 @@ class ServerGUI(QtGui.QWidget):
 
 if __name__ == '__main__':
 
-  connections = []
+#  connections = [] 
+  connections = ["1.1.1.1", "2.2.2.2"]
 
   try:
     app = QtGui.QApplication(sys.argv)
