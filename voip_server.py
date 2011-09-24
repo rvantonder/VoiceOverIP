@@ -17,25 +17,24 @@ class Client(QtCore.QThread):
     self.running = 1
 
   def run(self): #when the client thread is started
-    connections.append(self.address)
+    connections[self.address] = self.client
     self.emit(QtCore.SIGNAL("updateUserlist"), None)
 
     try:
       print 'sent userlist upon prompt'
-      self.client.send("ul__ "+' '.join(connections)+"\n")
+      self.client.send("ul__ "+' '.join(connections.keys())+"\n")
     except socket.error:
       print 'failed sending userlist'
 
     while self.running:
       try:
         data = self.client.recv(self.size)
-        self.client.send("echo from server "+data+'\n')
         #print 'data verbatim'
         #print data
       except socket.error as (number,msg):
         print number,msg
         print 'Socket error on receive'
-        connections.remove(self.address) #potentially dangerous?
+        del connections[self.address]
         self.emit(QtCore.SIGNAL("updateUserlist"), None) #send data as test
         self.emit(QtCore.SIGNAL("updateText"), (self.address + " has disconnected"))
         return
@@ -43,34 +42,48 @@ class Client(QtCore.QThread):
       if data:
         print "valid data",data+" from "+self.address
         try:
-          cmd, host = self.parse(data)
+          cmd, host, msg = self.parse(data)
         except:
           cmd = "None"
           host = "None"
         
         if cmd == r'\call':
           self.emit(QtCore.SIGNAL("updateText"), (self.address + " wants to call " + host))
-          if host in connections:
+          if host in connections.keys():
             self.emit(QtCore.SIGNAL("updateText"), (host + " found"))
             self.client.send("Connect to host " + self.address + " with port " + self.port + "\n")
             #connect procedure
           else:
             self.emit(QtCore.SIGNAL("updateText"), (host + " not found"))
-            #?
+            self.client.send("The host you wish to call does not exist\n")
+        elif cmd == r'\msg':
+          self.whisper(host, msg)
         else:
-          pass
+          self.send_all(data)
+          self.emit(QtCore.SIGNAL("updateText"), (self.address + " sends msg " + data))
    
           
       else:
-        connections.remove(self.address)
+        del connections[self.address]
         self.emit(QtCore.SIGNAL("updateUserlist"), None) #send data as test
         self.emit(QtCore.SIGNAL("updateText"), (self.address + " has disconnected"))
         self.running = 0
+  
+  def send_all(self, msg):
+    for socket in connections.values():
+      try:
+        socket.send(self.address+': '+msg+'\n')
+      except IOError: 
+        print 'Socket already closed'
+
+  def whisper(self, host, msg):
+    pass #unimplemented until I'm told to do so
 
   def parse(self, data):
     
     cmd = None
     host = None
+    msg = None
     try:
       cmd, host = data.split(" ")
       host.rstrip()
@@ -78,9 +91,10 @@ class Client(QtCore.QThread):
       print 'could not split' 
 
     if not cmd == r'\call':
-      self.emit(QtCore.SIGNAL("updateText"), ("command " + cmd + " from " + self.address + " not valid"))
+      if not cmd.startswith(r'\\'):
+        self.emit(QtCore.SIGNAL("updateText"), ("command " + cmd + " from " + self.address + " not valid"))
     else:
-      return cmd, host
+      return cmd, host, msg
        
 class ServerGUI(QtGui.QWidget):
   def __init__(self,port):
@@ -130,7 +144,7 @@ class ServerGUI(QtGui.QWidget):
   def updateUserlist(self):
     self.ui.listWidget.clear()
 
-    for i in connections:
+    for i in connections.keys():
       item = QtGui.QListWidgetItem(str(i))
       self.ui.listWidget.addItem(item) 
     
@@ -141,8 +155,7 @@ class ServerGUI(QtGui.QWidget):
 
 if __name__ == '__main__':
 
-#  connections = [] 
-  connections = ["1.1.1.1", "2.2.2.2"]
+  connections = {}
 
   try:
     app = QtGui.QApplication(sys.argv)
