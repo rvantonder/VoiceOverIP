@@ -77,7 +77,11 @@ class Client(QtCore.QThread):
         print 'Socket already closed'
 
   def whisper(self, host, msg):
-    pass #unimplemented until I'm told to do so
+    if connections.has_key(host):
+      connections[host].send("whisper from "+self.address+":"+msg+"\n")
+      self.client.send("whisper to "+self.address+":"+msg+"\n")
+    else:
+      self.client.send("Sorry you cannot whisper to "+host+" because they do not exist")
 
   def parse(self, data):
     
@@ -85,12 +89,28 @@ class Client(QtCore.QThread):
     host = None
     msg = None
     try:
-      cmd, host = data.split(" ")
+      data = data.split(" ")
+    except:
+      pass
+
+    try:
+      cmd = data[0]
+    except:
+      print 'No cmd index'
+    
+    try:
+      host = data[1]
       host.rstrip()
     except:
-      print 'could not split' 
+      print 'No host'
+  
+    try:
+      msg = data[2:]
+    except:
+      print 'No msg'
 
-    if not cmd == r'\call':
+
+    if not cmd == r'\call' or cmd == r'\msg':
       if not cmd.startswith(r'\\'):
         self.emit(QtCore.SIGNAL("updateText"), ("command " + cmd + " from " + self.address + " not valid"))
     else:
