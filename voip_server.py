@@ -6,6 +6,7 @@ from PyQt4 import QtCore, QtGui
 from serverwindow import Ui_Form
 
 global connections
+global calls
 
 class Client(QtCore.QThread):
   def __init__(self,(client,address)):
@@ -47,7 +48,11 @@ class Client(QtCore.QThread):
           self.emit(QtCore.SIGNAL("updateText"), (self.address + " wants to call " + host))
           if host in connections.keys():
             self.emit(QtCore.SIGNAL("updateText"), (host + " found"))
-            self.client.send("Connect to host " + self.address + " with port " + self.port + "\n")
+            connections[self.address].send("ca__ "+host+"\n") #todo add call state variable
+            connections[host].send("ca__ "+self.address+"\n")
+            calls.append(self.address)
+            calls.append(host)
+            
             #connect procedure
           else:
             self.emit(QtCore.SIGNAL("updateText"), (host + " not found"))
@@ -61,6 +66,12 @@ class Client(QtCore.QThread):
           
       else:
         del connections[self.address]
+
+        try:
+          calls.remove(self.address)
+        except:
+          print 'is not in call anyway'
+
         self.emit(QtCore.SIGNAL("updateUserlist"), None) #send data as test
         self.emit(QtCore.SIGNAL("updateText"), (self.address + " has disconnected"))
         self.running = 0
@@ -177,6 +188,7 @@ class ServerGUI(QtGui.QWidget):
 if __name__ == '__main__':
 
   connections = {}
+  calls = []
 
   try:
     app = QtGui.QApplication(sys.argv)
