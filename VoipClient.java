@@ -360,33 +360,12 @@ public class VoipClient implements ActionListener{
 	public void actionPerformed(ActionEvent a)	{
 		if (a.getSource() == textField)	{
 			String text = textField.getText();
-			try	{
-				if (text.substring(0,1).equals("\\"))	{
-					try	{
-						String[] split = text.substring(1).split(" ");
-						if (split[0].equals("call"))	{
-							//send the whole text message:
-							server_send("\\call "+split[1]);
-							//the next thing received will be the host name
-							//client_connect(split[1]); //TODO change this!
-						} else if (split[0].equals("exit"))	{
-							System.exit(0);
-						} else	{
-							textArea.append("Incorrect or incomplete command entered.\n");
-						}
-					} catch(Exception e)	{
-						textArea.append("Incorrect or incomplete command entered.\n");
-					}
-				} else	{
-					//TODO send this text message
-					//textArea.append(text + "\n");
+			  try	{
 					server_send(text); //XXX TODO do not prepend stuff
-				}
-			} catch(Exception e)	{
-				textArea.append("Error processing text.\n");
-			}
-			
-			textField.setText("");
+			  } catch(Exception e)	{
+				  textArea.append("Error processing text.\n");
+        }
+		  textField.setText("");
 		}
 	}
 	

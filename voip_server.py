@@ -23,6 +23,7 @@ class Client(QtCore.QThread):
     try:
       print 'sent userlist upon prompt'
       self.client.send("ul__ "+' '.join(connections.keys())+"\n")
+      self.emit(QtCore.SIGNAL("updateText"), (self.address + " has connected"))
     except socket.error:
       print 'failed sending userlist'
 
@@ -40,12 +41,7 @@ class Client(QtCore.QThread):
         return
 
       if data:
-        print "valid data",data+" from "+self.address
-        try:
-          cmd, host, msg = self.parse(data)
-        except:
-          cmd = "None"
-          host = "None"
+        cmd, host, msg = self.parse(data)
         
         if cmd == r'\call':
           self.emit(QtCore.SIGNAL("updateText"), (self.address + " wants to call " + host))
@@ -81,40 +77,39 @@ class Client(QtCore.QThread):
       connections[host].send("whisper from "+self.address+":"+msg+"\n")
       self.client.send("whisper to "+self.address+":"+msg+"\n")
     else:
-      self.client.send("Sorry you cannot whisper to "+host+" because they do not exist")
+      self.client.send("Sorry you cannot whisper to "+host+" because they do not exist"+"\n")
 
   def parse(self, data):
     
-    cmd = None
-    host = None
-    msg = None
+    cmd = "" 
+    host = ""
+    msg = ""
     try:
-      data = data.split(" ")
+      sdata = data.split(" ")
     except:
       pass
 
     try:
-      cmd = data[0]
+      cmd = sdata[0]
     except:
       print 'No cmd index'
     
     try:
-      host = data[1]
+      host = sdata[1]
       host.rstrip()
     except:
       print 'No host'
   
     try:
-      msg = data[2:]
+      msg = data[len(cmd)+len(host):]
     except:
       print 'No msg'
 
-
-    if not cmd == r'\call' or cmd == r'\msg':
-      if not cmd.startswith(r'\\'):
+    if not cmd == r'\call' and not cmd == r'\msg':
+      if cmd.startswith(r'\\'):
         self.emit(QtCore.SIGNAL("updateText"), ("command " + cmd + " from " + self.address + " not valid"))
-    else:
-      return cmd, host, msg
+
+    return cmd, host, msg
        
 class ServerGUI(QtGui.QWidget):
   def __init__(self,port):
