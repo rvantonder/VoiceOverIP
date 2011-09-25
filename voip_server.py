@@ -162,6 +162,12 @@ class ServerGUI(QtGui.QWidget):
     for i in connections.keys():
       item = QtGui.QListWidgetItem(str(i))
       self.ui.listWidget.addItem(item) 
+
+    for socket in connections.values(): #send the updated userlist
+      try:
+        socket.send("ul__ "+' '.join(connections.keys())+"\n")
+      except IOError: 
+        print 'Socket already closed'
     
   def updateText(self, msg):
     self.ui.textEdit.append(msg)

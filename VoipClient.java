@@ -393,7 +393,7 @@ public class VoipClient implements ActionListener{
 		
 		VoipClient c = new VoipClient(ip, Integer.parseInt(receive_port), Integer.parseInt(send_port)); 
 
-    c.server_connect("127.0.0.1", Integer.parseInt(args[0])); //TODO use command line arg
+    c.server_connect(args[0], Integer.parseInt(args[1])); //TODO use command line arg
 		
 	  listenLoop = new Thread(new ConnectionListener()); //XXX my addition
 	  listenLoop.start(); //XXX my addition
