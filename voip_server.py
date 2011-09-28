@@ -6,7 +6,7 @@ from PyQt4 import QtCore, QtGui
 from serverwindow import Ui_Form
 
 global connections
-global calls
+global calls #calls will be a list that contains n-tuples, each of which corresponds to a conference in progress
 
 class Client(QtCore.QThread):
   def __init__(self,(client,address)):
@@ -22,7 +22,6 @@ class Client(QtCore.QThread):
     self.emit(QtCore.SIGNAL("updateUserlist"), None)
 
     try:
-      print 'sent userlist upon prompt'
       self.client.send("ul__ "+' '.join(connections.keys())+"\n")
       self.emit(QtCore.SIGNAL("updateText"), (self.address + " has connected"))
     except socket.error:
@@ -46,12 +45,16 @@ class Client(QtCore.QThread):
         
         if cmd == r'\call':
           self.emit(QtCore.SIGNAL("updateText"), (self.address + " wants to call " + host))
-          if host in connections.keys():
-            self.emit(QtCore.SIGNAL("updateText"), (host + " found"))
-            connections[self.address].send("ca__ "+host+"\n") #todo add call state variable
-            connections[host].send("ca__ "+self.address+"\n")
-            calls.append(self.address)
-            calls.append(host)
+          if host in connections.keys(): #TODO add callers to conferences
+            if self.host_in_call(host) or self.host_in_call(self.address): #check if either in call already
+              self.emit(QtCore.SIGNAL("updateText"), ("already in calls"))
+              connections[self.address].send("A call is already active\n")
+              connections[host].send("A call is already active\n")
+            else:
+              self.emit(QtCore.SIGNAL("updateText"), (host + " found"))
+              connections[self.address].send("ca__ "+host+"\n") #todo add call state variable
+              connections[host].send("ca__ "+self.address+"\n")
+              calls.append([self.address,host]) #append the call/conference
             
             #connect procedure
           else:
@@ -59,6 +62,20 @@ class Client(QtCore.QThread):
             self.client.send("The host you wish to call does not exist\n")
         elif cmd == r'\msg':
           self.whisper(host, msg)
+        elif cmd == r'\dc':
+          self.emit(QtCore.SIGNAL("updateText"), (self.address + " wants to disconnect a call "))
+
+          for conference in calls: 
+            if self.address in conference:
+              conference.remove(self.address) #remove myself from the call/conference
+              connections[self.address].send("dc__\n")
+              self.emit(QtCore.SIGNAL("updateText"), (self.address + " has been prompted to disconnect "))
+              if len(conference) == 1: #if there are less than two involved in the call
+                connections[conference[0]].send("dc__\n") #send the other host a dc__ command
+                self.emit(QtCore.SIGNAL("updateText"), (conference[0] + " has been prompted to disconnect "))
+                calls.remove(conference) #delete the entire call if there is only one active member 
+
+          
         else:
           self.send_all(data)
           self.emit(QtCore.SIGNAL("updateText"), (self.address + " sends msg " + data))
@@ -67,14 +84,24 @@ class Client(QtCore.QThread):
       else:
         del connections[self.address]
 
-        try:
-          calls.remove(self.address)
-        except:
-          print 'is not in call anyway'
+        for conference in calls: #TODO fix if already in call
+          if self.address in conference:
+            conference.remove(self.address) #remove myself from the call/conference
+            if len(conference) == 1: #if there are less than two involved in the call
+              connections[conference[0]].send("dc__\n") #send the other host a dc__ command
+              self.emit(QtCore.SIGNAL("updateText"), (conference[0] + " has been prompted to disconnect "))
+              calls.remove(conference) #delete the entire call if there is only one active member 
 
         self.emit(QtCore.SIGNAL("updateUserlist"), None) #send data as test
         self.emit(QtCore.SIGNAL("updateText"), (self.address + " has disconnected"))
         self.running = 0
+
+  def host_in_call(self, host):
+    for conference in calls:
+      if host in conference:
+        return True
+
+    return False
   
   def send_all(self, msg):
     for socket in connections.values():
@@ -199,5 +226,5 @@ if __name__ == '__main__':
     gui.show()
     sys.exit(app.exec_())
   except IndexError:
-    print 'Usage: ...'
+    print 'Usage: python voip_server.py <port>'
 
