@@ -102,7 +102,7 @@ class Client(QtCore.QThread):
             self.emit(QtCore.SIGNAL("updateText"), (self.address + "attempting conference call with " + host))
             self.join_host_call(host)
             channel_c = self.get_channel(host)
-            connections[self.address].send("You are now in a conference call with"+' '.channel_c+"\n")
+            connections[self.address].send("You are now in a conference call with "+', '.join(channel_c)+"\n")
             for h in channel_c:
               connections[h].send("Adding "+self.address+" to the call\n")
           else:
@@ -142,7 +142,7 @@ class Client(QtCore.QThread):
   def get_channel(self, host):
     for conference in calls:
       if host in conference:
-        return ' '.join(conference)
+        return conference
 
   def join_host_call(self, host):
     print "Adding",self.address,"to calls"
