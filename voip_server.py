@@ -70,6 +70,8 @@ class Client(QtCore.QThread):
               connections[self.address].send("ca__ "+host+"\n") #todo add call state variable
               connections[host].send("ca__ "+self.address+"\n")
               calls.append([self.address,host]) #append the call/conference
+              connections[self.address].send("You are now in a call with "+host+"\n")
+              connections[host].send("You are now in a call with "+self.address+"\n")
             
             #connect procedure
           else:
@@ -99,8 +101,10 @@ class Client(QtCore.QThread):
           if self.host_in_call(host): #check if in call already
             self.emit(QtCore.SIGNAL("updateText"), (self.address + "attempting conference call with " + host))
             self.join_host_call(host)
-            connections[self.address].send("You are now in a conference call with"+host+"\n")
-            connections[host].send("Adding "+self.address+" to the call\n")
+            channel_c = self.get_channel(host)
+            connections[self.address].send("You are now in a conference call with"+' '.channel_c+"\n")
+            for h in channel_c:
+              connections[h].send("Adding "+self.address+" to the call\n")
           else:
             connections[self.address].send("There is no call active, you cannot make a conference call, use \call\n")
 
@@ -134,6 +138,11 @@ class Client(QtCore.QThread):
         return True
 
     return False
+
+  def get_channel(self, host):
+    for conference in calls:
+      if host in conference:
+        return ' '.join(conference)
 
   def join_host_call(self, host):
     print "Adding",self.address,"to calls"
