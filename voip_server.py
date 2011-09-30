@@ -76,6 +76,7 @@ class Client(QtCore.QThread):
                 connections[conference[0]].send("dc__\n") #send the other host a dc__ command
                 self.emit(QtCore.SIGNAL("updateText"), (conference[0] + " has been prompted to disconnect "))
                 calls.remove(conference) #delete the entire call if there is only one active member 
+
         elif cmd == r'\callc':
           if self.host_in_call(host): #check if in call already
             self.emit(QtCore.SIGNAL("updateText"), (self.address + "attempting conference call with " + host))
@@ -101,6 +102,10 @@ class Client(QtCore.QThread):
               self.emit(QtCore.SIGNAL("updateText"), (conference[0] + " has been prompted to disconnect "))
               calls.remove(conference) #delete the entire call if there is only one active member 
 
+        print self.address,"removed from calls"
+        print "calls:"
+        print calls
+
         self.emit(QtCore.SIGNAL("updateUserlist"), None) #send data as test
         self.emit(QtCore.SIGNAL("updateText"), (self.address + " has disconnected"))
         self.running = 0
@@ -113,10 +118,13 @@ class Client(QtCore.QThread):
     return False
 
   def join_host_call(self, host):
+    print "Adding",self.address,"to calls"
     for conference in calls:
       if host in conference:
         conference.append(self.address)
-  
+    print "calls:"
+    print calls
+
   def send_all(self, msg):
     for socket in connections.values():
       try:
