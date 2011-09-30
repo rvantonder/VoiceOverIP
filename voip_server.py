@@ -30,8 +30,6 @@ class Client(QtCore.QThread):
     while self.running:
       try:
         data = self.client.recv(self.size)
-        #print 'data verbatim'
-        #print data
       except socket.error as (number,msg):
         print number,msg
         print 'Socket error on receive'
@@ -44,12 +42,16 @@ class Client(QtCore.QThread):
         cmd, host, msg = self.parse(data)
         
         if cmd == r'\call':
+          if self.address == host:
+            connections[self.address].send("You cannot call yourself\n")
+            break #TODO confirm working
+
           self.emit(QtCore.SIGNAL("updateText"), (self.address + " wants to call " + host))
           if host in connections.keys(): #TODO add callers to conferences
             if self.host_in_call(host) or self.host_in_call(self.address): #check if either in call already
               self.emit(QtCore.SIGNAL("updateText"), ("already in calls"))
-              connections[self.address].send("A call is already active\n")
-              connections[host].send("A call is already active\n")
+              connections[self.address].send("A call is already active, use \callc\n")
+              connections[host].send("A call is already active, use \callc\n")
             else:
               self.emit(QtCore.SIGNAL("updateText"), (host + " found"))
               connections[self.address].send("ca__ "+host+"\n") #todo add call state variable
@@ -74,14 +76,21 @@ class Client(QtCore.QThread):
                 connections[conference[0]].send("dc__\n") #send the other host a dc__ command
                 self.emit(QtCore.SIGNAL("updateText"), (conference[0] + " has been prompted to disconnect "))
                 calls.remove(conference) #delete the entire call if there is only one active member 
+        elif cmd == r'\callc':
+          if self.host_in_call(host): #check if in call already
+            self.emit(QtCore.SIGNAL("updateText"), (self.address + "attempting conference call with " + host))
+            self.join_host_call(host)
+            connections[self.address].send("You are now in a conference call with"+host+"\n")
+            connections[host].send("Adding "+self.address+" to the call\n")
+          else:
+            connections[self.address].send("There is no call active, you cannot make a conference call, use \call\n")
 
           
         else:
           self.send_all(data)
           self.emit(QtCore.SIGNAL("updateText"), (self.address + " sends msg " + data))
    
-          
-      else:
+      else: #NO DATA
         del connections[self.address]
 
         for conference in calls: #TODO fix if already in call
@@ -102,6 +111,11 @@ class Client(QtCore.QThread):
         return True
 
     return False
+
+  def join_host_call(self, host):
+    for conference in calls:
+      if host in conference:
+        conference.append(self.address)
   
   def send_all(self, msg):
     for socket in connections.values():
