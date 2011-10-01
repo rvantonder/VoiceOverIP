@@ -40,6 +40,9 @@ class Client(QtCore.QThread):
               connections[conference[0]].send("dc__\n") #send the other host a dc__ command
               self.emit(QtCore.SIGNAL("updateText"), (conference[0] + " has been prompted to disconnect "))
               calls.remove(conference) #delete the entire call if there is only one active member 
+            elif len(conference) > 1:
+              for i in conference:
+                connections[i].send(i+" has disconnected from the call\n")
 
         print self.address,"removed from calls IN EXCEPTION"
         print "calls:"
@@ -93,6 +96,9 @@ class Client(QtCore.QThread):
                 connections[conference[0]].send("dc__\n") #send the other host a dc__ command
                 self.emit(QtCore.SIGNAL("updateText"), (conference[0] + " has been prompted to disconnect "))
                 calls.remove(conference) #delete the entire call if there is only one active member 
+              elif len(conference) > 1:
+                for i in conference:
+                  connections[i].send(i+" has disconnected from the call\n")
 
           print 'Removed calls'
           print calls
@@ -123,6 +129,10 @@ class Client(QtCore.QThread):
               connections[conference[0]].send("dc__\n") #send the other host a dc__ command
               self.emit(QtCore.SIGNAL("updateText"), (conference[0] + " has been prompted to disconnect "))
               calls.remove(conference) #delete the entire call if there is only one active member 
+            elif len(conference) > 1:
+              for i in conference:
+                connections[i].send(i+" has disconnected from the call\n")
+
 
         print self.address,"removed from calls"
         print "calls:"
