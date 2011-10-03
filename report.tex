@@ -1,0 +1,137 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{amstext}
+\usepackage{url}
+\usepackage[table]{xcolor}
+\usepackage[font=scriptsize, center]{caption}
+
+
+
+\title{VoIP Chat Program}
+\author{R. van Tonder, 15676633 \\ A. Esterhuizen, 15367940}
+\date{\today}
+
+\begin{document}
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+
+\section{Description}
+\paragraph{} This project comprised of implementing a Voice over IP chat program. It enables
+users to engage in a VoIP conversation over a local network, as well as chat. The architecture
+is that of a client-server model. The server concerns itself primarily with introducing clients to one another.
+
+\paragraph{} Consider that host A wishes to call host B, but that it has no knowledge of host B's address and port.
+The server will provide this information to host A, such that host A and B can initiate a direct connection
+and proceed to a VoIP conversation. Furthermore, chat messages from clients are relayed via the server.
+
+\paragraph{} The client is the front-end interface that initiates call operations with other hosts. Upon connecting to
+the server, it provides it's host-name. The server can then provide this information to other hosts wishing
+to engage in VoIP. The client provides a GUI which updates messages received, as well as a user-list maintained
+by the server.
+
+\section{Features}
+%included
+\subsection{Included}
+\subsubsection{Server}
+The server has the following capabilities, in accordance with the
+project specification.
+
+\begin{enumerate}
+ \item The server accepts connection requests from clients, and updates the user-list with the host-name of connected clients.
+ \item When clients wish to initiate a voice conversation, the server responds with the appropriate host-name of the recipient. 
+In this manner clients receive permission to call other hosts.
+ \item Informs clients if a call or conference is already active between hosts.
+ \item The server relays all messages to all clients, if they are not recognized as a command such as \verb|\call|. See \ref{det} for more.
+ \item Multiple users can connect simultaneously.
+ \item Whispering and global chat message relaying.
+ \item Call and conference channels. This is done by keeping a list of current active calls and conferences. See \ref{det} for more.
+ \item A GUI which displays 
+ \begin{itemize}
+  \item All messages sent through the server
+  \item Client connections to the server
+  \item Client disconnections from the server
+  \item The current user-list
+  \item Responses to commands received by the server
+ \end{itemize}
+
+\end{enumerate}
+
+\subsubsection{Client}
+The client has the following capabilities, in accordance with the project specification.
+
+\begin{enumerate}
+ \item Clients may connect and disconnect without incident.
+ \item Commands that are processed by the server for various functionalities, such as \verb|\call|, \verb|\callc|, and \verb|\msg|. See \ref{det} for more.
+ \item Initiating voice transmission when in a call with another host.
+ \item Playing Voice output and receiving Mic input.
+ \item A GUI which displays
+ \begin{itemize}
+  \item The current user-list
+  \item All global messages, and whispers when applicable
+  \item Whether a call has been iniatiated with the client
+  \item Whether a call cannot be established, if a host is already in a conference or call.
+ \end{itemize}
+
+\end{enumerate}
+
+%not included - nothing to say for now
+%extra features - nothing to say for now
+
+%See \ref{comp}
+
+\section{Design}
+\label{det}
+\subsection{Server Design}
+The server implementation was written in Python. It parses all incoming messages for the following commands,
+and performs the appropriate action.
+
+\begin{itemize}
+ \item \verb|\call <host-name>| Initiate a voice conversation with a host. The server responds with the host IP, or a message that a call is already in progress with this host.
+ \item \verb|\callc <host-name>| Initiate a voice conversation with multiple hosts who are already in a call. The conversation will be carried out with hosts which belong to \verb|host-name|'s conference.
+ \item \verb|\msg <host-name> <message>| Whisper a message to a host-name which exists.
+ \item \verb|\dc| Disconnect from a call or conference if engaged in one.
+\end{itemize}
+
+All messages received by the server that do not conform to these commands are broadcast to all clients as a message.
+\paragraph{}
+Furthermore, the server maintains a list of threads assocaited with active connections,
+and a 2-dimensional list of calls and conferences currently in progress. For example, consider the 2-dimensional list:
+\paragraph{}
+\verb|[[146.232.50.1, 146.232.50.20, 146.232.50.41], [146.232.50.5, 146.232.50.81]]|
+\paragraph{}
+This is representative of the fact that hosts \verb|146.232.50.1, 146.232.50.20,| and \verb|146.232.50.41| are in a conference call,
+while hosts \verb|146.232.50.5| and \verb|146.232.50.81| are in a seperate call. The call/conference list can grow indefinitely,
+as well as the hosts within a conference. All this information is kept server side, and although clients are informed of
+connecting hosts, they maintain no data of the hosts in the call/conference.
+\paragraph{}
+The server sends an updated user-list to all clients when a change in the user-list takes place. This is done by serializing the
+host-names associated with the  active connections list of thread objects.
+\paragraph{}
+The server GUI was written in PyQt.
+
+\subsection{Client Design}
+
+%threads? invoke lateR? etc
+%in Java
+%how do sound?
+%updating of userlist? It makes use of 'picked' objects, just say that. remember that client only receives from server, no need to
+%serialize data as it doesnt send it.
+
+\section{Sound Quality} %bs everything
+
+\section{Complications} %as jy lus het
+\label{comp}
+
+Linux sound libraries shit.
+
+\section{Conclusion}
+%goals achieved, overall wrap-up. voip is nie 'n lekker ou nie.
+
+
+
+\end{document}
