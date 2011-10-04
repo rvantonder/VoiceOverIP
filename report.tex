@@ -73,16 +73,26 @@ The client has the following capabilities, in accordance with the project specif
  \begin{itemize}
   \item The current user-list
   \item All global messages, and whispers when applicable
-  \item Whether a call has been iniatiated with the client
+  \item Whether a call has been initiated with the client
   \item Whether a call cannot be established, if a host is already in a conference or call.
  \end{itemize}
 
 \end{enumerate}
 
-%not included - nothing to say for now
-%extra features - nothing to say for now
+\subsection{Features Not Included}
+\paragraph{}
+While all features of the specification has been included, the sound quality of
+conference calls is rather low. Conference calls are implemented by
+making use of UDP multi-casting, and experiences some ``dead-zones'' in terms of
+audio. 
+\paragraph{}
+The back-end server, however, still supports the full use of conference
+channels and VoIP groups despite the under-performing sound quality.
 
-%See \ref{comp}
+\subsection{Extra Features}
+The back-end server is cross-platform compatible with windows and Ubuntu and
+written in PyQt. The back-end server sends notification messages to clients upon
+connections, disconnections, and when a user joins a conference call.
 
 \section{Design}
 \label{det}
@@ -105,7 +115,8 @@ and a 2-dimensional list of calls and conferences currently in progress. For exa
 \verb|[[146.232.50.1, 146.232.50.20, 146.232.50.41], [146.232.50.5, 146.232.50.81]]|
 \paragraph{}
 This is representative of the fact that hosts \verb|146.232.50.1, 146.232.50.20,| and \verb|146.232.50.41| are in a conference call,
-while hosts \verb|146.232.50.5| and \verb|146.232.50.81| are in a seperate call. The call/conference list can grow indefinitely,
+while hosts \verb|146.232.50.5| and \verb|146.232.50.81| are in a separate call.
+The call/conference list can grow indefinitely,
 as well as the hosts within a conference. All this information is kept server side, and although clients are informed of
 connecting hosts, they maintain no data of the hosts in the call/conference.
 \paragraph{}
@@ -127,11 +138,26 @@ The server GUI was written in PyQt.
 \section{Complications} %as jy lus het
 \label{comp}
 
-Linux sound libraries shit.
+This project presented a number of complications. In terms of technical
+complications, it was found that current Linux sound library ALSA is not 
+supported by Java or Python without third-dparty tools. Thus, Windows was
+resorted to for implementing the client. The Windows sound library presented no
+problem in implementing VoIP. Fortunately, the server could still be implemented
+in Python, on Ubuntu. 
+
+Furthermore, it was challenging to test the quality of the VoIP conversations
+and conference calls, due to lack of sufficient equipment. See \ref{appa} for 
+more information.
 
 \section{Conclusion}
-%goals achieved, overall wrap-up. voip is nie 'n lekker ou nie.
+In this project a VoIP implementation was successfully produced, and afforded
+the understanding of the Java Sound API, as well as how to send sound as data
+over the UDP protocol. 
 
+Further avenues that could be explored is the process of encoding sound
+data sent over the network, rather than sending raw data. Conference calling
+via multi-casting did not yield entirely desirable results, and other options
+could be considered to achieve reliable conference calling.
 
 
 \end{document}

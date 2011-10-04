@@ -202,7 +202,7 @@ class Client(QtCore.QThread):
     except:
       print 'No msg'
 
-    if not cmd == r'\call' and not cmd == r'\msg':
+    if not cmd == r'\call' and not cmd == r'\msg': #TODO must add others
       if cmd.startswith(r'\\'):
         self.emit(QtCore.SIGNAL("updateText"), ("command " + cmd + " from " + self.address + " not valid"))
 
