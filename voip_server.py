@@ -93,7 +93,6 @@ class Client(QtCore.QThread):
               elif len(conference) > 1:
                 for i in conference:
                   connections[i].send(i+" has disconnected from the call\n")
-                  connections[i].send("You have been disconnected from the call\n")
 
         elif cmd == r'\callc':
           if self.host_in_call(host): #check if in call already
