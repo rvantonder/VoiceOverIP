@@ -95,10 +95,12 @@ class Client(QtCore.QThread):
               if len(conference) == 1: #if there are less than two involved in the call
                 connections[conference[0]].send("dc__\n") #send the other host a dc__ command
                 self.emit(QtCore.SIGNAL("updateText"), (conference[0] + " has been prompted to disconnect "))
+                connections[conference[0]].send("You have been disconnected from the call\n")
                 calls.remove(conference) #delete the entire call if there is only one active member 
               elif len(conference) > 1:
                 for i in conference:
                   connections[i].send(i+" has disconnected from the call\n")
+                  connections[i].send("You have been disconnected from the call\n")
 
           print 'Removed calls'
           print calls
