@@ -195,7 +195,8 @@ class Client(QtCore.QThread):
       host = sdata[1]
       host.rstrip()
     except:
-      print 'No host'
+      pass
+      #print 'No host'
   
     try:
       msg = data[len(cmd)+len(host):]
