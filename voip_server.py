@@ -69,6 +69,8 @@ class Client(QtCore.QThread):
               calls.append([self.address,host]) #append the call/conference
               connections[self.address].send("You are now in a call with "+host+"\n")
               connections[host].send("You are now in a call with "+self.address+"\n")
+              print 'CURRENT ACTIVE CALLS'
+              print calls
             
             #connect procedure
           else:
@@ -104,6 +106,9 @@ class Client(QtCore.QThread):
               connections[h].send("Adding "+self.address+" to the call\n")
           else:
             connections[self.address].send("There is no call active, you cannot make a conference call, use \call\n")
+          
+          print 'CURRENT ACTIVE CALLS'
+          print calls
 
         else:
           self.send_all(data)
