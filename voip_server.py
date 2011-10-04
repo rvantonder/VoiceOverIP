@@ -31,8 +31,8 @@ class Client(QtCore.QThread):
       try:
         data = self.client.recv(self.size)
       except socket.error as (number,msg):
-        print 'Client connection lost'
-        for conference in calls: #TODO fix if already in call
+        print 'Client disconnect'
+        for conference in calls: 
           if self.address in conference:
             conference.remove(self.address) #remove myself from the call/conference
             if len(conference) == 1: #if there are less than two involved in the call
@@ -41,8 +41,10 @@ class Client(QtCore.QThread):
               calls.remove(conference) #delete the entire call if there is only one active member 
             elif len(conference) > 1:
               for i in conference:
-                connections[i].send(i+" has disconnected from the call\n")
+                connections[i].send(self.address+" has disconnected from the call\n")
 
+        print 'CURRENT ACTIVE CALLS'
+        print calls
         del connections[self.address]
         self.emit(QtCore.SIGNAL("updateUserlist"), None) #send data as test
         self.emit(QtCore.SIGNAL("updateText"), (self.address + " has disconnected"))
@@ -54,7 +56,7 @@ class Client(QtCore.QThread):
         if cmd == r'\call':
           if self.address == host:
             connections[self.address].send("You cannot call yourself\n")
-          elif host in connections.keys(): #TODO add callers to conferences
+          elif host in connections.keys():
             self.emit(QtCore.SIGNAL("updateText"), (self.address + " wants to call " + host))
 
             if self.host_in_call(host) or self.host_in_call(self.address): #check if either in call already
@@ -63,7 +65,7 @@ class Client(QtCore.QThread):
               connections[host].send("A call is already active, use \callc\n")
             else:
               self.emit(QtCore.SIGNAL("updateText"), (host + " found"))
-              connections[self.address].send("ca__ "+host+"\n") #todo add call state variable
+              connections[self.address].send("ca__ "+host+"\n") 
               connections[host].send("ca__ "+self.address+"\n")
               calls.append([self.address,host]) #append the call/conference
               connections[self.address].send("You are now in a call with "+host+"\n")
@@ -99,7 +101,7 @@ class Client(QtCore.QThread):
             self.emit(QtCore.SIGNAL("updateText"), (self.address + "attempting conference call with " + host))
             self.join_host_call(host)
             channel_c = self.get_channel(host)
-            connections[self.address].send("ca__ \n") #tell it to join the conference, no IP to 'connect to'
+            connections[self.address].send("ca__ junk\n") #tell it to join the conference, no IP to 'connect to'
             connections[self.address].send("You are now in a conference call with "+', '.join(channel_c)+"\n")
             for h in channel_c:
               connections[h].send("Adding "+self.address+" to the call\n")
@@ -125,7 +127,7 @@ class Client(QtCore.QThread):
               calls.remove(conference) #delete the entire call if there is only one active member 
             elif len(conference) > 1:
               for i in conference:
-                connections[i].send(i+" has disconnected from the call\n")
+                connections[i].send(self.address+" has disconnected from the call\n")
 
         self.emit(QtCore.SIGNAL("updateUserlist"), None) #send data as test
         self.emit(QtCore.SIGNAL("updateText"), (self.address + " has disconnected"))
