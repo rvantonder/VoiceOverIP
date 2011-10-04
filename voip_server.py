@@ -31,8 +31,7 @@ class Client(QtCore.QThread):
       try:
         data = self.client.recv(self.size)
       except socket.error as (number,msg):
-        print number,msg
-        print 'Socket error on receive'
+        print 'Client connection lost'
         for conference in calls: #TODO fix if already in call
           if self.address in conference:
             conference.remove(self.address) #remove myself from the call/conference
@@ -101,6 +100,7 @@ class Client(QtCore.QThread):
             self.emit(QtCore.SIGNAL("updateText"), (self.address + "attempting conference call with " + host))
             self.join_host_call(host)
             channel_c = self.get_channel(host)
+            connections[self.address].send("ca__ \n") #tell it to join the conference, no IP to 'connect to'
             connections[self.address].send("You are now in a conference call with "+', '.join(channel_c)+"\n")
             for h in channel_c:
               connections[h].send("Adding "+self.address+" to the call\n")
