@@ -77,8 +77,6 @@ class Client(QtCore.QThread):
         elif cmd == r'\msg':
           self.whisper(host, msg)
         elif cmd == r'\dc':
-          print 'Current calls'
-          print calls
           self.emit(QtCore.SIGNAL("updateText"), (self.address + " wants to disconnect a call "))
 
           for conference in calls: 
@@ -96,9 +94,6 @@ class Client(QtCore.QThread):
                   connections[i].send(i+" has disconnected from the call\n")
                   connections[i].send("You have been disconnected from the call\n")
 
-          print 'Removed calls'
-          print calls
-
         elif cmd == r'\callc':
           if self.host_in_call(host): #check if in call already
             self.emit(QtCore.SIGNAL("updateText"), (self.address + "attempting conference call with " + host))
@@ -110,15 +105,14 @@ class Client(QtCore.QThread):
           else:
             connections[self.address].send("There is no call active, you cannot make a conference call, use \call\n")
 
-          
         else:
           self.send_all(data)
           self.emit(QtCore.SIGNAL("updateText"), (self.address + " sends msg " + data))
    
-      else: #NO DATA
+      else: #if there's no data
         del connections[self.address]
 
-        for conference in calls: #TODO fix if already in call
+        for conference in calls: 
           if self.address in conference:
             conference.remove(self.address) #remove myself from the call/conference
             if len(conference) == 1: #if there are less than two involved in the call
@@ -128,11 +122,6 @@ class Client(QtCore.QThread):
             elif len(conference) > 1:
               for i in conference:
                 connections[i].send(i+" has disconnected from the call\n")
-
-
-        print self.address,"removed from calls"
-        print "calls:"
-        print calls
 
         self.emit(QtCore.SIGNAL("updateUserlist"), None) #send data as test
         self.emit(QtCore.SIGNAL("updateText"), (self.address + " has disconnected"))
