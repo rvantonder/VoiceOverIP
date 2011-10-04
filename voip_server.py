@@ -44,11 +44,6 @@ class Client(QtCore.QThread):
               for i in conference:
                 connections[i].send(i+" has disconnected from the call\n")
 
-        print self.address,"removed from calls IN EXCEPTION"
-        print "calls:"
-        print calls
-
-
         del connections[self.address]
         self.emit(QtCore.SIGNAL("updateUserlist"), None) #send data as test
         self.emit(QtCore.SIGNAL("updateText"), (self.address + " has disconnected"))
@@ -60,10 +55,9 @@ class Client(QtCore.QThread):
         if cmd == r'\call':
           if self.address == host:
             connections[self.address].send("You cannot call yourself\n")
-            break #TODO confirm working
+          elif host in connections.keys(): #TODO add callers to conferences
+            self.emit(QtCore.SIGNAL("updateText"), (self.address + " wants to call " + host))
 
-          self.emit(QtCore.SIGNAL("updateText"), (self.address + " wants to call " + host))
-          if host in connections.keys(): #TODO add callers to conferences
             if self.host_in_call(host) or self.host_in_call(self.address): #check if either in call already
               self.emit(QtCore.SIGNAL("updateText"), ("already in calls"))
               connections[self.address].send("A call is already active, use \callc\n")
