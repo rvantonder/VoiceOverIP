@@ -87,6 +87,7 @@ class Client(QtCore.QThread):
               conference.remove(self.address) #remove myself from the call/conference
               connections[self.address].send("dc__\n")
               self.emit(QtCore.SIGNAL("updateText"), (self.address + " has been prompted to disconnect "))
+              connections[self.address].send("You have been disconnected from the call\n")
               if len(conference) == 1: #if there are less than two involved in the call
                 connections[conference[0]].send("dc__\n") #send the other host a dc__ command
                 self.emit(QtCore.SIGNAL("updateText"), (conference[0] + " has been prompted to disconnect "))
