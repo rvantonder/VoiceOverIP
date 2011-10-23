@@ -1,0 +1,23 @@
+Compile and run with:
+
+javac VoipClient.java
+java VoipClient <server ip> <port>
+
+The authors humbly suggest copying the .java into
+Eclipse on Windows, and proceeding to run the application
+from there. 
+
+Note:
+VoipClient is the standard implementation for direct
+calls between two users.
+
+VoipClientM is the implementation for conference calling,
+but operates in the same manner as VoipClient. The
+reason for this is that VoipClientM makes use of 
+multi-casting whereas VoipClient does not.
+
+ONLY COMPATIBLE WITH WINDOWS :D
+
+Make sure to turn up one's mic and sound volume to MAX.
+
+

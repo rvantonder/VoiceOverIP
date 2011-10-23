@@ -1,0 +1,4 @@
+One needs PyQt to run the server. Install using:
+
+sudo apt-get install python-qt4
+if necessary in Narga F. Works by default in H.
